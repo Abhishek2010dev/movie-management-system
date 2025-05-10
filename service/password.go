@@ -13,7 +13,7 @@ type Password interface {
 
 type passwordServiceImpl struct{}
 
-func NewPasswordService() Password {
+func NewPassword() Password {
 	return &passwordServiceImpl{}
 }
 
