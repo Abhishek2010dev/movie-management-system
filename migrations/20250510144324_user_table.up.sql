@@ -11,5 +11,5 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(100) NOT NULL,
     email VARCHAR(254) NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
-    role user_role NOT NULL
+    role user_role DEFAULT "user"
 );
