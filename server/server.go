@@ -1,6 +1,7 @@
 package server
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 
@@ -9,10 +10,11 @@ import (
 
 type Server struct {
 	cfg config.Config
+	db  *sql.DB
 }
 
-func New(cfg config.Config) *http.Server {
-	server := Server{cfg}
+func New(cfg config.Config, db *sql.DB) *http.Server {
+	server := Server{cfg, db}
 
 	return &http.Server{
 		Addr:         fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port),
