@@ -31,6 +31,7 @@ func New() *Server {
 func (s *Server) Setup() *fiber.App {
 	app := fiber.New(fiber.Config{
 		StructValidator: utils.NewStructValidator(),
+		ErrorHandler:    utils.ErrorHandler,
 	})
 
 	app.Use(requestid.New())

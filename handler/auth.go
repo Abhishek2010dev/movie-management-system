@@ -27,9 +27,13 @@ type RegisterPayload struct {
 }
 
 func (a *Auth) RegisterHandler(c fiber.Ctx) error {
+	payload := new(RegisterPayload)
+	if err := c.Bind().Body(payload); err != nil {
+		return err
+	}
 	return nil
 }
 
 func (a *Auth) RegisterRoutes(r fiber.Router) {
-
+	r.Post("/register", a.RegisterHandler)
 }
