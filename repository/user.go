@@ -20,10 +20,10 @@ func (u *User) Create(ctx context.Context, payload *dto.CreateUserPayload) (int,
 	var id int
 	query := `
   	      INSERT INTO users (name, email, password_hash)
-  	      VALUES ($1, $2, $3)
+	      VALUES (:name, :email, :password_hash)
   	      RETURNING id
 	`
-	err := u.db.QueryRowxContext(ctx, query, payload.Name, payload.Email, payload.Password).Scan(&id)
+	err := u.db.GetContext(ctx, &id, query, payload)
 	if err != nil {
 		return 0, fmt.Errorf("Failed to create user: %w", err)
 	}
