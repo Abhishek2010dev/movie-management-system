@@ -13,6 +13,12 @@ type Jwt struct {
 	secretKey []byte
 }
 
+type Claims struct {
+	UserId int64           `json:"id"`
+	Role   models.UserRole `json:"role"`
+	jwt.RegisteredClaims
+}
+
 func NewJwt(secretKey string) *Jwt {
 	return &Jwt{[]byte(secretKey)}
 }
