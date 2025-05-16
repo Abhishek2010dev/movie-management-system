@@ -1,16 +1,16 @@
 package models
 
-type Role string
+type UserRole string
 
 var (
-	AdminRole Role = "admin"
-	UserRole  Role = "user"
+	RoleAdmin UserRole = "admin"
+	RoleUser  UserRole = "user"
 )
 
 type User struct {
-	Id           string `db:"id"`
-	Name         string `db:"name"`
-	Email        string `db:"email"`
-	PasswordHash string `db:"password_hash"`
-	role         Role   `db:"role"`
+	Id           string   `db:"id"`
+	Name         string   `db:"name"`
+	Email        string   `db:"email"`
+	PasswordHash string   `db:"password_hash"`
+	Role         UserRole `db:"role"`
 }
