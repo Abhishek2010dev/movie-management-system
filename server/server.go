@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/Abhishek2010dev/movie-management-system/config"
 	"github.com/Abhishek2010dev/movie-management-system/database"
+	"github.com/Abhishek2010dev/movie-management-system/utils"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	recoverer "github.com/gofiber/fiber/v3/middleware/recover"
@@ -27,12 +28,10 @@ func New() *Server {
 	}
 }
 
-func (s *Server) registerRoutes(app *fiber.App) {
-	app.Get("/", RootHandler)
-}
-
 func (s *Server) Setup() *fiber.App {
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		StructValidator: utils.NewStructValidator(),
+	})
 
 	app.Use(requestid.New())
 	app.Use(recoverer.New())
