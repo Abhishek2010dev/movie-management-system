@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Abhishek2010dev/movie-management-system/dto"
 	"github.com/Abhishek2010dev/movie-management-system/models"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -24,7 +23,7 @@ func NewJwt(secretKey string) *Jwt {
 }
 
 func (j *Jwt) CreateToken(id int64, role models.UserRole) (string, error) {
-	claims := dto.Claims{
+	claims := Claims{
 		UserId: id,
 		Role:   role,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -40,8 +39,8 @@ func (j *Jwt) CreateToken(id int64, role models.UserRole) (string, error) {
 	return ss, nil
 }
 
-func (j *Jwt) VerifyToken(tokenStr string) (*dto.Claims, error) {
-	token, err := jwt.ParseWithClaims(tokenStr, &dto.Claims{}, func(token *jwt.Token) (any, error) {
+func (j *Jwt) VerifyToken(tokenStr string) (*Claims, error) {
+	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -52,7 +51,7 @@ func (j *Jwt) VerifyToken(tokenStr string) (*dto.Claims, error) {
 		return nil, fmt.Errorf("failed to parse token: %w", err)
 	}
 
-	if claims, ok := token.Claims.(*dto.Claims); ok && token.Valid {
+	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
 		return claims, nil
 	}
 	return nil, fmt.Errorf("invalid token or claims")
