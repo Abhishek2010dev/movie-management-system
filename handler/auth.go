@@ -66,6 +66,39 @@ func (a *Auth) RegisterHandler(c fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(TokenResponse{token})
 }
 
+type LoginPayload struct {
+	Email    string `json:"email" validate:"required,email,max=254"`
+	Password string `json:"password" validate:"required,min=8"`
+}
+
+func (a *Auth) LoginHandler(c fiber.Ctx) error {
+	payload := new(LoginPayload)
+	if err := c.Bind().JSON(payload); err != nil {
+		return err
+	}
+
+	user, err := a.repository.FindByEmail(c.Context(), payload.Email)
+	if err != nil {
+		return err
+	}
+
+	if user == nil {
+		return fiber.NewError(fiber.StatusUnauthorized, "Invalid email or password")
+	}
+
+	if !a.passwordService.VerifyPassword(payload.Password, user.PasswordHash) {
+		return fiber.NewError(fiber.StatusUnauthorized, "Invalid email or password")
+	}
+
+	token, err := a.jwtService.CreateToken(user.Id, user.Role)
+	if err != nil {
+		return err
+	}
+
+	return c.Status(fiber.StatusOK).JSON(TokenResponse{token})
+}
+
 func (a *Auth) RegisterRoutes(r fiber.Router) {
 	r.Post("/register", a.RegisterHandler)
+	r.Post("/login", a.LoginHandler)
 }
