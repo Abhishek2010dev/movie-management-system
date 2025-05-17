@@ -28,7 +28,7 @@ type RegisterPayload struct {
 
 func (a *Auth) RegisterHandler(c fiber.Ctx) error {
 	payload := new(RegisterPayload)
-	if err := c.Bind().Body(payload); err != nil {
+	if err := c.Bind().JSON(payload); err != nil {
 		return err
 	}
 	return nil
