@@ -5,22 +5,17 @@ import (
 
 	"github.com/Abhishek2010dev/movie-management-system/models"
 	"github.com/Abhishek2010dev/movie-management-system/repository"
-	"github.com/Abhishek2010dev/movie-management-system/service"
+	"github.com/Abhishek2010dev/movie-management-system/utils"
 	"github.com/gofiber/fiber/v3"
 )
 
 type Auth struct {
-	jwtService      *service.Jwt
-	passwordService *service.Password
-	repository      *repository.User
+	repository *repository.User
+	secretKey  []byte
 }
 
-func NewAuth(jwtService *service.Jwt, passwordService *service.Password, repository *repository.User) *Auth {
-	return &Auth{
-		jwtService,
-		passwordService,
-		repository,
-	}
+func NewAuth(repository *repository.User, secretKey []byte) *Auth {
+	return &Auth{repository, secretKey}
 }
 
 type RegisterPayload struct {
@@ -39,7 +34,7 @@ func (a *Auth) RegisterHandler(c fiber.Ctx) error {
 		return err
 	}
 
-	passwordHash, err := a.passwordService.HashPassword(payload.Password)
+	passwordHash, err := utils.HashPassword(payload.Password)
 	if err != nil {
 		return err
 	}
@@ -58,7 +53,7 @@ func (a *Auth) RegisterHandler(c fiber.Ctx) error {
 		return err
 	}
 
-	token, err := a.jwtService.CreateToken(id, models.RoleUser)
+	token, err := utils.CreateToken(a.secretKey, id, models.RoleUser)
 	if err != nil {
 		return err
 	}
@@ -86,11 +81,11 @@ func (a *Auth) LoginHandler(c fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusUnauthorized, "Invalid email or password")
 	}
 
-	if !a.passwordService.VerifyPassword(payload.Password, user.PasswordHash) {
+	if !utils.VerifyPassword(payload.Password, user.PasswordHash) {
 		return fiber.NewError(fiber.StatusUnauthorized, "Invalid email or password")
 	}
 
-	token, err := a.jwtService.CreateToken(user.Id, user.Role)
+	token, err := utils.CreateToken(a.secretKey, user.Id, user.Role)
 	if err != nil {
 		return err
 	}
