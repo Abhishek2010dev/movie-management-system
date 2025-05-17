@@ -13,7 +13,7 @@ type Jwt struct {
 }
 
 type Claims struct {
-	UserId int64           `json:"id"`
+	UserId int             `json:"id"`
 	Role   models.UserRole `json:"role"`
 	jwt.RegisteredClaims
 }
@@ -22,7 +22,7 @@ func NewJwt(secretKey string) *Jwt {
 	return &Jwt{[]byte(secretKey)}
 }
 
-func (j *Jwt) CreateToken(id int64, role models.UserRole) (string, error) {
+func (j *Jwt) CreateToken(id int, role models.UserRole) (string, error) {
 	claims := Claims{
 		UserId: id,
 		Role:   role,

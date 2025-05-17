@@ -20,25 +20,24 @@ func NewUser(db *sqlx.DB) *User {
 }
 
 type CreateUserPayload struct {
-	Name         string `db:"name"`
-	Email        string `db:"email"`
-	PasswordHash string `db:"password_hash"`
+	Name         string
+	Email        string
+	PasswordHash string
 }
 
 var ErrDuplicateEmail = errors.New("duplicate email")
 
 func (u *User) Create(ctx context.Context, payload CreateUserPayload) (int, error) {
 	var id int
-	query := `
-  	      INSERT INTO users (name, email, password_hash)
-	      VALUES (:name, :email, :password_hash)
-  	      RETURNING id
-	`
-	if err := u.db.GetContext(ctx, &id, query, payload); err != nil {
+	query := `INSERT INTO users (name, email, password_hash)
+	          VALUES ($1, $2, $3) RETURNING id`
+
+	err := u.db.QueryRowContext(ctx, query, payload.Name, payload.Email, payload.PasswordHash).Scan(&id)
+	if err != nil {
 		if strings.Contains(err.Error(), "duplicate key") {
 			return 0, ErrDuplicateEmail
 		}
-		return 0, fmt.Errorf("Failed to create user: %w", err)
+		return 0, fmt.Errorf("create user: %w", err)
 	}
 	return id, nil
 }
