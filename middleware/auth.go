@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"slices"
 	"strings"
 
 	"github.com/Abhishek2010dev/movie-management-system/models"
@@ -27,10 +26,10 @@ func AuthMiddleware(secretKey []byte) fiber.Handler {
 	}
 }
 
-func RequireRoles(roles ...models.UserRole) fiber.Handler {
+func AdminMiddleware() fiber.Handler {
 	return func(c fiber.Ctx) error {
 		claims := fiber.Locals[utils.Claims](c, AuthPayloadKey)
-		if slices.Contains(roles, claims.Role) {
+		if claims.Role == models.RoleAdmin {
 			return c.Next()
 		}
 		return fiber.NewError(fiber.StatusForbidden, "You are not allowed to access this route")
