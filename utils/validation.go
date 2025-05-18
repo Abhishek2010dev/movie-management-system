@@ -3,8 +3,6 @@ package utils
 import (
 	"errors"
 	"fmt"
-	"mime/multipart"
-	"net/http"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -14,9 +12,7 @@ type StructValidator struct {
 }
 
 func NewStructValidator() *StructValidator {
-	validate := validator.New()
-	validate.RegisterValidation("file_valid", FileValidator)
-	return &StructValidator{validate}
+	return &StructValidator{validator.New()}
 }
 
 func (v *StructValidator) Validate(out any) error {
@@ -64,41 +60,4 @@ func validationErrorMessage(fe validator.FieldError) string {
 	default:
 		return fe.Error()
 	}
-}
-
-const MaxFileSize = 5 << 20
-
-var allowedMIMETypes = map[string]bool{
-	"image/jpeg": true,
-	"image/png":  true,
-	"image/webp": true,
-}
-
-func FileValidator(fl validator.FieldLevel) bool {
-	fileHeader, ok := fl.Field().Interface().(*multipart.FileHeader)
-	if !ok || fileHeader == nil {
-		return false
-	}
-
-	if fileHeader.Size > MaxFileSize {
-		return false
-	}
-
-	file, err := fileHeader.Open()
-	if err != nil {
-		return false
-	}
-	defer file.Close()
-
-	buffer := make([]byte, 512)
-	if _, err := file.Read(buffer); err != nil {
-		return false
-	}
-
-	mimeType := http.DetectContentType(buffer)
-	if !allowedMIMETypes[mimeType] {
-		return false
-	}
-
-	return true
 }

@@ -6,7 +6,7 @@ import (
 
 type Genre struct {
 	ID          int    `db:"id" json:"id"`
-	Name        string `db:"title" json:"name"`
+	Name        string `db:"name" json:"name"`
 	Description string `db:"description" json:"description"`
 }
 

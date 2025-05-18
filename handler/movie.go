@@ -1,10 +1,14 @@
 package handler
 
 import (
+	"fmt"
 	"mime/multipart"
+	"path/filepath"
+	"time"
 
 	"github.com/Abhishek2010dev/movie-management-system/repository"
 	"github.com/gofiber/fiber/v3"
+	"github.com/google/uuid"
 )
 
 type Movie struct {
@@ -21,7 +25,7 @@ type MoviePayload struct {
 	ReleaseDate     string                `form:"release_date" validate:"required,datetime=2006-01-02"`
 	DurationMinutes int                   `form:"duration_minutes" validate:"required,min=1"`
 	Director        string                `form:"director" validate:"required,min=1,max=100"`
-	File            *multipart.FileHeader `form:"file" validate:"required,file_valid"`
+	File            *multipart.FileHeader `form:"file" validate:"required"`
 	GenreIDs        []int                 `form:"genre_ids" validate:"required,dive,lte=10"`
 }
 
@@ -30,13 +34,32 @@ func (m *Movie) Create(c fiber.Ctx) error {
 	if err := c.Bind().Form(payload); err != nil {
 		return err
 	}
-	//
-	// err := c.SaveFile(payload.File, fmt.Sprintf("%s/%s", server.UploadDir, payload.File.Filename))
-	// if err != nil {
-	// 	return err
-	// }
 
-	return nil
+	ext := filepath.Ext(payload.File.Filename)
+	safeFileName := fmt.Sprintf("%s%s", uuid.New().String(), ext)
+
+	err := c.SaveFile(payload.File, fmt.Sprintf("./uploads/poster/%s", safeFileName))
+	if err != nil {
+		return err
+	}
+
+	ReleaseDate, _ := time.Parse("2006-01-02", payload.ReleaseDate)
+	createMoviePayload := repository.CreateMoviePayload{
+		Title:           payload.Title,
+		Description:     payload.Description,
+		ReleaseDate:     ReleaseDate,
+		DurationMinutes: payload.DurationMinutes,
+		Director:        payload.Director,
+		PosterPath:      fmt.Sprintf("/poster/%s", safeFileName),
+		GenreIDs:        payload.GenreIDs,
+	}
+
+	movie, err := m.repository.Create(c.Context(), createMoviePayload)
+	if err != nil {
+		return err
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(movie)
 }
 
 func (m *Movie) RegisterRoutes(r fiber.Router) {
