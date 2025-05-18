@@ -40,6 +40,7 @@ func (s *Server) Setup() *fiber.App {
 	app := fiber.New(fiber.Config{
 		StructValidator: utils.NewStructValidator(),
 		ErrorHandler:    utils.ErrorHandler,
+		BodyLimit:       5 * 1024 * 1024,
 	})
 
 	app.Use(requestid.New())
