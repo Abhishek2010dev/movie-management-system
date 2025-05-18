@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -74,6 +76,9 @@ func (m *Movie) FindByID(ctx context.Context, id int) (*models.Movie, error) {
 	`
 	err := m.db.GetContext(ctx, &movie, selectMovieQuery, id)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("failed to select movie (ID %d): %w", id, err)
 	}
 

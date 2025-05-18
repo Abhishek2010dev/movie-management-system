@@ -62,6 +62,19 @@ func (m *Movie) Create(c fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(movie)
 }
 
+func (m *Movie) GetById(c fiber.Ctx) error {
+	id := fiber.Params[int](c, "id")
+	movie, err := m.repository.FindByID(c.Context(), id)
+	if err != nil {
+		return err
+	}
+	if movie == nil {
+		return fiber.NewError(fiber.StatusNotFound, "Movie not found")
+	}
+	return c.Status(fiber.StatusOK).JSON(movie)
+}
+
 func (m *Movie) RegisterRoutes(r fiber.Router) {
 	r.Post("/movies", m.Create)
+	r.Get("/movies/:id<regex((?:0|[1-9][0-9]{0,18}))>", m.GetById)
 }
