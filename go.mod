@@ -4,7 +4,7 @@ go 1.24.3
 
 require (
 	github.com/go-playground/validator/v10 v10.26.0
-	github.com/gofiber/fiber/v3 v3.0.0-beta.4
+	github.com/gofiber/fiber/v3 v3.0.0-beta.4.0.20250516131042-59b9b1048838
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/lib/pq v1.10.9

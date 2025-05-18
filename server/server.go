@@ -1,6 +1,9 @@
 package server
 
 import (
+	"log"
+	"os"
+
 	"github.com/Abhishek2010dev/movie-management-system/config"
 	"github.com/Abhishek2010dev/movie-management-system/database"
 	"github.com/Abhishek2010dev/movie-management-system/utils"
@@ -29,6 +32,11 @@ func New() *Server {
 }
 
 func (s *Server) Setup() *fiber.App {
+
+	if err := os.MkdirAll("./uploads/poster", os.ModePerm); err != nil {
+		log.Fatal(err)
+	}
+
 	app := fiber.New(fiber.Config{
 		StructValidator: utils.NewStructValidator(),
 		ErrorHandler:    utils.ErrorHandler,
