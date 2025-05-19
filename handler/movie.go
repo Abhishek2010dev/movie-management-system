@@ -80,8 +80,9 @@ func (m *Movie) GetById(c fiber.Ctx) error {
 func (m *Movie) GetAll(c fiber.Ctx) error {
 	limit := fiber.Query(c, "limit", 10)
 	offset := fiber.Query(c, "offset", 0)
+	genreID := fiber.Query(c, "genreID", 0)
 
-	movies, err := m.repository.FindAll(c.Context(), limit, offset)
+	movies, err := m.repository.FindAll(c.Context(), limit, offset, genreID)
 	if err != nil {
 		return err
 	}

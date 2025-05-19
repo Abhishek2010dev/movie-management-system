@@ -99,16 +99,36 @@ func (m *Movie) FindByID(ctx context.Context, id int) (*models.Movie, error) {
 	return &movie, nil
 }
 
-func (m *Movie) FindAll(ctx context.Context, limit, offset int) ([]models.Movie, error) {
-	movieQuery := `
-		SELECT id, title, description, release_date, duration_minutes, director, poster_path, created_at
-		FROM movie
-		ORDER BY created_at DESC
-		LIMIT $1 OFFSET $2
-	`
+func (m *Movie) FindAll(ctx context.Context, limit, offset int, genreID int) ([]models.Movie, error) {
+	var (
+		movieQuery string
+		args       []any
+	)
+
+	if genreID != 0 {
+		movieQuery = `
+			SELECT DISTINCT mov.id, mov.title, mov.description, mov.release_date, 
+			       mov.duration_minutes, mov.director, mov.poster_path, mov.created_at
+			FROM movie mov
+			JOIN movie_genre mg ON mov.id = mg.movie_id
+			WHERE mg.genre_id = $1
+			ORDER BY mov.created_at DESC
+			LIMIT $2 OFFSET $3
+		`
+		args = []any{genreID, limit, offset}
+	} else {
+		movieQuery = `
+			SELECT id, title, description, release_date, duration_minutes, 
+			       director, poster_path, created_at
+			FROM movie
+			ORDER BY created_at DESC
+			LIMIT $1 OFFSET $2
+		`
+		args = []any{limit, offset}
+	}
 
 	var movies []models.Movie
-	err := m.db.SelectContext(ctx, &movies, movieQuery, limit, offset)
+	err := m.db.SelectContext(ctx, &movies, movieQuery, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch movies: %w", err)
 	}
@@ -124,7 +144,7 @@ func (m *Movie) FindAll(ctx context.Context, limit, offset int) ([]models.Movie,
 		idIndexMap[movie.ID] = &movies[i]
 	}
 
-	query := `
+	genreQuery := `
 		SELECT mg.movie_id, g.id, g.name, g.description
 		FROM movie_genre mg
 		LEFT JOIN genre g ON mg.genre_id = g.id
@@ -137,7 +157,7 @@ func (m *Movie) FindAll(ctx context.Context, limit, offset int) ([]models.Movie,
 	}
 
 	var results []genreResult
-	err = m.db.SelectContext(ctx, &results, query, pq.Array(movieIDs))
+	err = m.db.SelectContext(ctx, &results, genreQuery, pq.Array(movieIDs))
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch genres for movies: %w", err)
 	}
