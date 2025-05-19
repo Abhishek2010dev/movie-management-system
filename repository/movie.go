@@ -9,6 +9,7 @@ import (
 
 	"github.com/Abhishek2010dev/movie-management-system/models"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 type Movie struct {
@@ -99,5 +100,53 @@ func (m *Movie) FindByID(ctx context.Context, id int) (*models.Movie, error) {
 }
 
 func (m *Movie) FindAll(ctx context.Context, limit, offset int) ([]models.Movie, error) {
-	return nil, nil
+	movieQuery := `
+		SELECT id, title, description, release_date, duration_minutes, director, poster_path, created_at
+		FROM movie
+		ORDER BY created_at DESC
+		LIMIT $1 OFFSET $2
+	`
+
+	var movies []models.Movie
+	err := m.db.SelectContext(ctx, &movies, movieQuery, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch movies: %w", err)
+	}
+
+	if len(movies) == 0 {
+		return movies, nil
+	}
+
+	movieIDs := make([]int, len(movies))
+	idIndexMap := make(map[int]*models.Movie)
+	for i, movie := range movies {
+		movieIDs[i] = movie.ID
+		idIndexMap[movie.ID] = &movies[i]
+	}
+
+	query := `
+		SELECT mg.movie_id, g.id, g.name, g.description
+		FROM movie_genre mg
+		LEFT JOIN genre g ON mg.genre_id = g.id
+		WHERE mg.movie_id = ANY($1)
+	`
+
+	type genreResult struct {
+		MovieID int `db:"movie_id"`
+		models.Genre
+	}
+
+	var results []genreResult
+	err = m.db.SelectContext(ctx, &results, query, pq.Array(movieIDs))
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch genres for movies: %w", err)
+	}
+
+	for _, res := range results {
+		if movie, exists := idIndexMap[res.MovieID]; exists {
+			movie.Genres = append(movie.Genres, res.Genre)
+		}
+	}
+
+	return movies, nil
 }

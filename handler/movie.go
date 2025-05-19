@@ -74,7 +74,20 @@ func (m *Movie) GetById(c fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(movie)
 }
 
+func (m *Movie) GetAll(c fiber.Ctx) error {
+	limit := fiber.Query(c, "limit", 10)
+	offset := fiber.Query(c, "offset", 0)
+
+	movies, err := m.repository.FindAll(c.Context(), limit, offset)
+	if err != nil {
+		return err
+	}
+
+	return c.Status(fiber.StatusOK).JSON(movies)
+}
+
 func (m *Movie) RegisterRoutes(r fiber.Router) {
 	r.Post("/movies", m.Create)
+	r.Get("/movies", m.GetAll)
 	r.Get("/movies/:id<regex((?:0|[1-9][0-9]{0,18}))>", m.GetById)
 }
