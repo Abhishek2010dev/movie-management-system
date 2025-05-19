@@ -9,6 +9,11 @@ import (
 func (s *Server) registerRoutes(app *fiber.App) {
 	app.Get("/", RootHandler)
 
+	app.Get("/poster/:filename<regex([a-zA-Z0-9._-]+\\.(?:jpg|jpeg|png|webp))>", func(c fiber.Ctx) error {
+		filename := c.Params("filename")
+		return c.SendFile("./uploads/poster/" + filename)
+	})
+
 	userRepository := repository.NewUser(s.db)
 	authHandler := handler.NewAuth(userRepository, s.cfg.JwtSecret)
 	authHandler.RegisterRoutes(app.Group("/api/auth"))

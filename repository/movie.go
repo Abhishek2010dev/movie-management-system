@@ -97,3 +97,7 @@ func (m *Movie) FindByID(ctx context.Context, id int) (*models.Movie, error) {
 	movie.Genres = genres
 	return &movie, nil
 }
+
+func (m *Movie) FindAll(ctx context.Context, limit, offset int) ([]models.Movie, error) {
+	return nil, nil
+}
