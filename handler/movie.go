@@ -86,8 +86,21 @@ func (m *Movie) GetAll(c fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(movies)
 }
 
+func (m *Movie) DeleteById(c fiber.Ctx) error {
+	id := fiber.Params[int](c, "id")
+	id, err := m.repository.DeleteByID(c.Context(), id)
+	if err != nil {
+		return err
+	}
+	if id == 0 {
+		return fiber.NewError(fiber.StatusNotFound, "Movie not found")
+	}
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
 func (m *Movie) RegisterRoutes(r fiber.Router) {
 	r.Post("/movies", m.Create)
 	r.Get("/movies", m.GetAll)
 	r.Get("/movies/:id<regex((?:0|[1-9][0-9]{0,18}))>", m.GetById)
+	r.Delete("/movies/:id<regex((?:0|[1-9][0-9]{0,18}))>", m.DeleteById)
 }

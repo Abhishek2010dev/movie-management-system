@@ -150,3 +150,15 @@ func (m *Movie) FindAll(ctx context.Context, limit, offset int) ([]models.Movie,
 
 	return movies, nil
 }
+
+func (m *Movie) DeleteByID(ctx context.Context, id int) (int, error) {
+	query := "DELETE FROM movie WHERE id = $1 RETURNING id"
+	var databaseId int
+	if err := m.db.QueryRowContext(ctx, query, id).Scan(&databaseId); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, nil
+		}
+
+	}
+	return databaseId, nil
+}
