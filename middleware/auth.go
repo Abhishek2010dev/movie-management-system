@@ -26,12 +26,10 @@ func AuthMiddleware(secretKey []byte) fiber.Handler {
 	}
 }
 
-func AdminMiddleware() fiber.Handler {
-	return func(c fiber.Ctx) error {
-		claims := fiber.Locals[utils.Claims](c, AuthPayloadKey)
-		if claims.Role == models.RoleAdmin {
-			return c.Next()
-		}
-		return fiber.NewError(fiber.StatusForbidden, "You are not allowed to access this route")
+func AdminMiddleware(c fiber.Ctx) error {
+	claims := fiber.Locals[utils.Claims](c, AuthPayloadKey)
+	if claims.Role == models.RoleAdmin {
+		return c.Next()
 	}
+	return fiber.NewError(fiber.StatusForbidden, "You are not allowed to access this route")
 }

@@ -162,3 +162,67 @@ func (m *Movie) DeleteByID(ctx context.Context, id int) (int, error) {
 	}
 	return databaseId, nil
 }
+
+type UpdateMoviePayload struct {
+	Title           string    `json:"title"`
+	Description     string    `json:"description"`
+	ReleaseDate     time.Time `json:"release_date"`
+	DurationMinutes int       `json:"duration_minutes"`
+	Director        string    `json:"director"`
+	GenreIDs        []int     `json:"genre_ids"`
+}
+
+func (m *Movie) UpdateByID(ctx context.Context, id int, payload UpdateMoviePayload) (*models.Movie, error) {
+	tx, err := m.db.Begin()
+	if err != nil {
+		return nil, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	var updatedID int
+	updateQuery := `
+		UPDATE movie
+		SET title = $1,
+			description = $2,
+			release_date = $3,
+			duration_minutes = $4,
+			director = $5
+		WHERE id = $6
+		RETURNING id`
+
+	err = tx.QueryRowContext(ctx, updateQuery,
+		payload.Title, payload.Description,
+		payload.ReleaseDate, payload.DurationMinutes,
+		payload.Director, id).Scan(&updatedID)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to update movie: %w", err)
+	}
+
+	_, err = tx.ExecContext(ctx, `DELETE FROM movie_genre WHERE movie_id = $1`, updatedID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to delete old genres: %w", err)
+	}
+
+	genreStmt, err := tx.PrepareContext(ctx, `INSERT INTO movie_genre (movie_id, genre_id) VALUES ($1, $2)`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to prepare genre insert statement: %w", err)
+	}
+	defer genreStmt.Close()
+
+	for _, genreID := range payload.GenreIDs {
+		_, err := genreStmt.ExecContext(ctx, updatedID, genreID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to insert movie genre: %w", err)
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return m.FindByID(ctx, updatedID)
+}

@@ -6,10 +6,13 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/Abhishek2010dev/movie-management-system/middleware"
 	"github.com/Abhishek2010dev/movie-management-system/repository"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 )
+
+var ErrMovieNotFound = fiber.NewError(fiber.StatusNotFound, "Movie not found")
 
 type Movie struct {
 	repository *repository.Movie
@@ -69,7 +72,7 @@ func (m *Movie) GetById(c fiber.Ctx) error {
 		return err
 	}
 	if movie == nil {
-		return fiber.NewError(fiber.StatusNotFound, "Movie not found")
+		return ErrMovieNotFound
 	}
 	return c.Status(fiber.StatusOK).JSON(movie)
 }
@@ -88,19 +91,38 @@ func (m *Movie) GetAll(c fiber.Ctx) error {
 
 func (m *Movie) DeleteById(c fiber.Ctx) error {
 	id := fiber.Params[int](c, "id")
-	id, err := m.repository.DeleteByID(c.Context(), id)
+	deletedID, err := m.repository.DeleteByID(c.Context(), id)
 	if err != nil {
 		return err
 	}
-	if id == 0 {
-		return fiber.NewError(fiber.StatusNotFound, "Movie not found")
+	if deletedID == 0 {
+		return ErrMovieNotFound
 	}
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
+func (m *Movie) UpdateById(c fiber.Ctx) error {
+	id := fiber.Params[int](c, "id")
+	payload := new(repository.UpdateMoviePayload)
+	if err := c.Bind().JSON(payload); err != nil {
+		return err
+	}
+	movie, err := m.repository.UpdateByID(c.Context(), id, *payload)
+	if err != nil {
+		return err
+	}
+	if movie == nil {
+		return ErrMovieNotFound
+	}
+	return c.Status(fiber.StatusOK).JSON(movie)
+}
+
 func (m *Movie) RegisterRoutes(r fiber.Router) {
-	r.Post("/movies", m.Create)
 	r.Get("/movies", m.GetAll)
 	r.Get("/movies/:id<regex((?:0|[1-9][0-9]{0,18}))>", m.GetById)
-	r.Delete("/movies/:id<regex((?:0|[1-9][0-9]{0,18}))>", m.DeleteById)
+
+	adminRoutes := r.Group("/", middleware.AdminMiddleware)
+	adminRoutes.Post("/movies", m.Create)
+	adminRoutes.Delete("/movies/:id<regex((?:0|[1-9][0-9]{0,18}))>", m.DeleteById)
+	adminRoutes.Put("/movies/:id<regex((?:0|[1-9][0-9]{0,18}))>", m.UpdateById)
 }

@@ -17,7 +17,8 @@ func (s *Server) registerRoutes(app *fiber.App) {
 	authHandler := handler.NewAuth(userRepository, s.cfg.JwtSecret)
 	authHandler.RegisterRoutes(app.Group("/api/auth"))
 
+	protectedRoutes := app.Group("/api")
 	movieRepository := repository.NewMovie(s.db)
 	movieHandler := handler.NewMovie(movieRepository)
-	movieHandler.RegisterRoutes(app.Group("/api"))
+	movieHandler.RegisterRoutes(protectedRoutes)
 }
