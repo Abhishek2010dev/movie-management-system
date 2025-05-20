@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -35,6 +37,21 @@ func (s *Showtime) Create(ctx context.Context, payload CreateShowtimePayload) (*
 	err := s.db.GetContext(ctx, &showtime, query, payload.MovieID, payload.StartTime, payload.EndTime, payload.AvailableSeats, payload.Price)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create showtime: %w", err)
+	}
+	return &showtime, nil
+}
+
+func (s *Showtime) FindById(ctx context.Context, id int) (*models.Showtime, error) {
+	query := `
+		SELECT id, movie_id, start_time, end_time, available_seats, price, created_at
+		FROM showtime WHERE id = $1
+	`
+	var showtime models.Showtime
+	if err := s.db.GetContext(ctx, &showtime, query, id); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to select showtime (ID: %v): %w", id, err)
 	}
 	return &showtime, nil
 }

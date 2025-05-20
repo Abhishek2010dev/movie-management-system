@@ -5,6 +5,8 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
+var ErrNoShowtimeFound = fiber.NewError(fiber.StatusNotFound, "Showtime not found")
+
 type Showtime struct {
 	repository *repository.Showtime
 }
@@ -23,4 +25,16 @@ func (s *Showtime) Create(c fiber.Ctx) error {
 		return err
 	}
 	return c.Status(fiber.StatusCreated).JSON(showtime)
+}
+
+func (s *Showtime) GetById(c fiber.Ctx) error {
+	id := fiber.Params[int](c, "id")
+	showtime, err := s.repository.FindById(c.Context(), id)
+	if err != nil {
+		return err
+	}
+	if showtime == nil {
+		return ErrNoShowtimeFound
+	}
+	return c.Status(fiber.StatusOK).JSON(showtime)
 }
