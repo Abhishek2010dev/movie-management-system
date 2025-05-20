@@ -64,3 +64,15 @@ func (s *Showtime) FindAll(ctx context.Context) ([]models.Showtime, error) {
 	}
 	return showtimes, nil
 }
+
+func (s *Showtime) DeleteById(ctx context.Context, id int) (int, error) {
+	query := "DELETE FROM showtime WHERE id = $1 RETURNING id"
+	var databaseId int
+	if err := s.db.GetContext(ctx, &databaseId, query, id); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, nil
+		}
+		return 0, fmt.Errorf("failed to delete showtime (ID: %v): %w", id, err)
+	}
+	return databaseId, nil
+}

@@ -46,3 +46,15 @@ func (s *Showtime) GetAll(c fiber.Ctx) error {
 	}
 	return c.Status(fiber.StatusOK).JSON(showtimes)
 }
+
+func (s *Showtime) DeleteById(c fiber.Ctx) error {
+	id := fiber.Params[int](c, "id")
+	deletedId, err := s.repository.DeleteById(c.Context(), id)
+	if err != nil {
+		return err
+	}
+	if deletedId == 0 {
+		return ErrNoShowtimeFound
+	}
+	return c.SendStatus(fiber.StatusNoContent)
+}
