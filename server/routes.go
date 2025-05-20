@@ -32,6 +32,7 @@ func (s *Server) registerRoutes(app *fiber.App) {
 	protectedRoutes.Get("/movies/:id<regex((?:0|[1-9][0-9]{0,18}))>", movieHandler.GetById)
 
 	protectedRoutes.Get("/showtimes/:id<regex((?:0|[1-9][0-9]{0,18}))>", showtimeHandler.GetById)
+	protectedRoutes.Get("/showtimes", showtimeHandler.GetAll)
 
 	adminRoutes := protectedRoutes.Group("/", middleware.AdminMiddleware)
 

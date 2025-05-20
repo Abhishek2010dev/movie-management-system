@@ -38,3 +38,11 @@ func (s *Showtime) GetById(c fiber.Ctx) error {
 	}
 	return c.Status(fiber.StatusOK).JSON(showtime)
 }
+
+func (s *Showtime) GetAll(c fiber.Ctx) error {
+	showtimes, err := s.repository.FindAll(c.Context())
+	if err != nil {
+		return err
+	}
+	return c.Status(fiber.StatusOK).JSON(showtimes)
+}

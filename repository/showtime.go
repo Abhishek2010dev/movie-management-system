@@ -55,3 +55,12 @@ func (s *Showtime) FindById(ctx context.Context, id int) (*models.Showtime, erro
 	}
 	return &showtime, nil
 }
+
+func (s *Showtime) FindAll(ctx context.Context) ([]models.Showtime, error) {
+	query := "SELECT id, movie_id, start_time, end_time, available_seats, price, created_at FROM showtime"
+	var showtimes []models.Showtime
+	if err := s.db.SelectContext(ctx, &showtimes, query); err != nil {
+		return showtimes, fmt.Errorf("failed to fetch all showtime: %w", err)
+	}
+	return showtimes, nil
+}
