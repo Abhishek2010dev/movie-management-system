@@ -42,4 +42,5 @@ func (s *Server) registerRoutes(app *fiber.App) {
 
 	adminRoutes.Post("/showtimes", showtimeHandler.Create)
 	adminRoutes.Delete("/showtimes/:id<regex((?:0|[1-9][0-9]{0,18}))>", showtimeHandler.DeleteById)
+	adminRoutes.Put("/showtimes/:id<regex((?:0|[1-9][0-9]{0,18}))>", showtimeHandler.UpdateById)
 }

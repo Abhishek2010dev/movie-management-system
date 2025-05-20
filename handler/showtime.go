@@ -16,7 +16,7 @@ func NewShowtime(repository *repository.Showtime) *Showtime {
 }
 
 func (s *Showtime) Create(c fiber.Ctx) error {
-	var payload repository.CreateShowtimePayload
+	var payload repository.ShowtimePayload
 	if err := c.Bind().JSON(&payload); err != nil {
 		return err
 	}
@@ -57,4 +57,20 @@ func (s *Showtime) DeleteById(c fiber.Ctx) error {
 		return ErrNoShowtimeFound
 	}
 	return c.SendStatus(fiber.StatusNoContent)
+}
+
+func (s *Showtime) UpdateById(c fiber.Ctx) error {
+	id := fiber.Params[int](c, "id")
+	var payload repository.ShowtimePayload
+	if err := c.Bind().JSON(&payload); err != nil {
+		return err
+	}
+	showtime, err := s.repository.UpdateById(c.Context(), id, payload)
+	if err != nil {
+		return err
+	}
+	if showtime == nil {
+		return ErrMovieNotFound
+	}
+	return c.Status(fiber.StatusOK).JSON(showtime)
 }

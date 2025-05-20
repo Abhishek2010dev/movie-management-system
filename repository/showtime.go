@@ -19,7 +19,7 @@ func NewShowtime(db *sqlx.DB) *Showtime {
 	return &Showtime{db}
 }
 
-type CreateShowtimePayload struct {
+type ShowtimePayload struct {
 	MovieID        int       `json:"movie_id" validate:"required,gt=0"`
 	StartTime      time.Time `json:"start_time" validate:"required"`
 	EndTime        time.Time `json:"end_time" validate:"required,gtfield=StartTime"`
@@ -27,7 +27,7 @@ type CreateShowtimePayload struct {
 	Price          float64   `json:"price" validate:"required,gte=0"`
 }
 
-func (s *Showtime) Create(ctx context.Context, payload CreateShowtimePayload) (*models.Showtime, error) {
+func (s *Showtime) Create(ctx context.Context, payload ShowtimePayload) (*models.Showtime, error) {
 	query := `
 	INSERT INTO showtime (movie_id, start_time, end_time, available_seats, price)
 	VALUES ($1, $2, $3, $4, $5)
@@ -75,4 +75,26 @@ func (s *Showtime) DeleteById(ctx context.Context, id int) (int, error) {
 		return 0, fmt.Errorf("failed to delete showtime (ID: %v): %w", id, err)
 	}
 	return databaseId, nil
+}
+
+func (s *Showtime) UpdateById(ctx context.Context, id int, payload ShowtimePayload) (*models.Showtime, error) {
+	query := `
+UPDATE showtime
+SET movie_id = $1,
+    start_time = $2,
+    end_time = $3,
+    available_seats = $4,
+    price = $5
+WHERE id = $6
+RETURNING id, movie_id, start_time, end_time, available_seats, price, created_at
+`
+	var showtime models.Showtime
+	err := s.db.GetContext(ctx, &showtime, query, payload.MovieID, payload.StartTime, payload.EndTime, payload.AvailableSeats, payload.Price, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to update showtime (ID: %v): %w", id, err)
+	}
+	return &showtime, nil
 }
