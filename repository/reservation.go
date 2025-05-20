@@ -85,7 +85,7 @@ func (r *Reservation) Delete(ctx context.Context, reservationID int) error {
 
 type ReservationWithLeftSeats struct {
 	models.Reservation
-	LeftSeats int `db:"left_seats"`
+	LeftSeats int `db:"left_seats" json:"left_seats"`
 }
 
 func (r *Reservation) GetAllWithLeftSeatCount(ctx context.Context) ([]ReservationWithLeftSeats, error) {
