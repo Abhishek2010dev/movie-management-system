@@ -51,12 +51,16 @@ func validationErrorMessage(fe validator.FieldError) string {
 		return fmt.Sprintf("Maximum value/length is %s", fe.Param())
 	case "lte":
 		return fmt.Sprintf("Must be less than or equal to %s", fe.Param())
+	case "gte":
+		return fmt.Sprintf("Must be greater than or equal to %s", fe.Param())
+	case "gt":
+		return fmt.Sprintf("Must be greater than %s", fe.Param())
+	case "gtfield":
+		return fmt.Sprintf("Must be greater than %s", fe.Param())
 	case "datetime":
 		return fmt.Sprintf("Invalid date format. Expected format is %s", fe.Param())
 	case "dive":
 		return "Invalid item in list"
-	case "file_valid":
-		return "Invalid file: must be JPEG/PNG/WEBP and ≤ 5MB"
 	default:
 		return fe.Error()
 	}

@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/Abhishek2010dev/movie-management-system/middleware"
 	"github.com/Abhishek2010dev/movie-management-system/repository"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
@@ -116,14 +115,4 @@ func (m *Movie) UpdateById(c fiber.Ctx) error {
 		return ErrMovieNotFound
 	}
 	return c.Status(fiber.StatusOK).JSON(movie)
-}
-
-func (m *Movie) RegisterRoutes(r fiber.Router) {
-	r.Get("/movies", m.GetAll)
-	r.Get("/movies/:id<regex((?:0|[1-9][0-9]{0,18}))>", m.GetById)
-
-	adminRoutes := r.Group("/", middleware.AdminMiddleware)
-	adminRoutes.Post("/movies", m.Create)
-	adminRoutes.Delete("/movies/:id<regex((?:0|[1-9][0-9]{0,18}))>", m.DeleteById)
-	adminRoutes.Put("/movies/:id<regex((?:0|[1-9][0-9]{0,18}))>", m.UpdateById)
 }

@@ -92,8 +92,3 @@ func (a *Auth) LoginHandler(c fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(TokenResponse{token})
 }
-
-func (a *Auth) RegisterRoutes(r fiber.Router) {
-	r.Post("/register", a.RegisterHandler)
-	r.Post("/login", a.LoginHandler)
-}
