@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"github.com/Abhishek2010dev/movie-management-system/middleware"
 	"github.com/Abhishek2010dev/movie-management-system/repository"
+	"github.com/Abhishek2010dev/movie-management-system/utils"
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -31,4 +33,13 @@ func (r *Reservation) CancelReservation(c fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusNotFound, "Reservation not found")
 	}
 	return c.SendStatus(fiber.StatusNoContent)
+}
+
+func (r *Reservation) GetUsetRervations(c fiber.Ctx) error {
+	claims := fiber.Locals[utils.Claims](c, middleware.AuthPayloadKey)
+	reservations, err := r.repository.GetByUserID(c.Context(), claims.UserId)
+	if err != nil {
+		return err
+	}
+	return c.Status(fiber.StatusOK).JSON(reservations)
 }

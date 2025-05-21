@@ -38,6 +38,7 @@ func (s *Server) registerRoutes(app *fiber.App) {
 	protectedRoutes.Get("/showtimes", showtimeHandler.GetAll)
 
 	protectedRoutes.Get("/reservations", reservationHandler.GetAll)
+	protectedRoutes.Get("/user/reservations", reservationHandler.GetUsetRervations)
 	protectedRoutes.Delete("/reservations/:id<regex((?:0|[1-9][0-9]{0,18}))>", reservationHandler.CancelReservation)
 
 	adminRoutes := protectedRoutes.Group("/", middleware.AdminMiddleware)
