@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -63,24 +65,19 @@ func (r *Reservation) GetAll(ctx context.Context) ([]models.Reservation, error) 
 	return reservations, nil
 }
 
-func (r *Reservation) Delete(ctx context.Context, reservationID int) error {
-	query := `DELETE FROM reservation WHERE id = $1`
+func (r *Reservation) Delete(ctx context.Context, reservationID int) (int, error) {
+	query := `DELETE FROM reservation WHERE id = $1 RETURNING id`
 
-	result, err := r.db.ExecContext(ctx, query, reservationID)
+	var deletedID int
+	err := r.db.QueryRowContext(ctx, query, reservationID).Scan(&deletedID)
 	if err != nil {
-		return fmt.Errorf("failed to delete reservation: %w", err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, nil
+		}
+		return 0, fmt.Errorf("failed to delete reservation: %w", err)
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
-	}
-
-	if rowsAffected == 0 {
-		return fmt.Errorf("no reservation found with id %d", reservationID)
-	}
-
-	return nil
+	return deletedID, nil
 }
 
 type ReservationWithLeftSeats struct {
@@ -113,4 +110,3 @@ func (r *Reservation) GetAllWithLeftSeatCount(ctx context.Context) ([]Reservatio
 
 	return results, nil
 }
-
