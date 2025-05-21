@@ -79,34 +79,3 @@ func (r *Reservation) Delete(ctx context.Context, reservationID int) (int, error
 
 	return deletedID, nil
 }
-
-type ReservationWithLeftSeats struct {
-	models.Reservation
-	LeftSeats int `db:"left_seats" json:"left_seats"`
-}
-
-func (r *Reservation) GetAllWithLeftSeatCount(ctx context.Context) ([]ReservationWithLeftSeats, error) {
-	query := `
-		SELECT
-			res.id,
-			res.user_id,
-			res.showtime_id,
-			res.reservation_time,
-			res.created_at,
-			st.available_seats - COALESCE(reserved_count.count, 0) AS left_seats
-		FROM reservation res
-		JOIN showtime st ON res.showtime_id = st.id
-		LEFT JOIN (
-			SELECT showtime_id, COUNT(*) AS count
-			FROM reservation
-			GROUP BY showtime_id
-		) reserved_count ON reserved_count.showtime_id = res.showtime_id
-	`
-
-	var results []ReservationWithLeftSeats
-	if err := r.db.SelectContext(ctx, &results, query); err != nil {
-		return nil, fmt.Errorf("failed to get reservations with left seat count: %w", err)
-	}
-
-	return results, nil
-}

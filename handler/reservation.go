@@ -35,11 +35,24 @@ func (r *Reservation) CancelReservation(c fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
-func (r *Reservation) GetUsetRervations(c fiber.Ctx) error {
+func (r *Reservation) GetUserRervations(c fiber.Ctx) error {
 	claims := fiber.Locals[utils.Claims](c, middleware.AuthPayloadKey)
 	reservations, err := r.repository.GetByUserID(c.Context(), claims.UserId)
 	if err != nil {
 		return err
 	}
 	return c.Status(fiber.StatusOK).JSON(reservations)
+}
+
+func (r *Reservation) Create(c fiber.Ctx) error {
+	var payload repository.ReservationPayload
+	if err := c.Bind().JSON(&payload); err != nil {
+		return err
+	}
+	claims := fiber.Locals[utils.Claims](c, middleware.AuthPayloadKey)
+	reservation, err := r.repository.Create(c.Context(), payload, claims.UserId)
+	if err != nil {
+		return err
+	}
+	return c.Status(fiber.StatusCreated).JSON(reservation)
 }
