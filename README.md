@@ -139,6 +139,13 @@ go run main.go
 
 ---
 
+
+## 🧠 Inspiration
+
+This project is based on the [Movie Reservation System project idea from roadmap.sh](https://roadmap.sh/projects/movie-reservation-system), a part of their project-based learning path to solidify backend development skills.
+
+---
+
 ## 📃 License
 
 MIT
