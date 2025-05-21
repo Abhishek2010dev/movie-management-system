@@ -23,6 +23,9 @@ func (s *Server) registerRoutes(app *fiber.App) {
 	showtimeRepository := repository.NewShowtime(s.db)
 	showtimeHandler := handler.NewShowtime(showtimeRepository)
 
+	reservationRepo := repository.NewReservation(s.db)
+	reservationHandler := handler.NewReservation(reservationRepo)
+
 	app.Post("/auth/login", authHandler.LoginHandler)
 	app.Post("/auth/register", authHandler.RegisterHandler)
 
@@ -33,6 +36,8 @@ func (s *Server) registerRoutes(app *fiber.App) {
 
 	protectedRoutes.Get("/showtimes/:id<regex((?:0|[1-9][0-9]{0,18}))>", showtimeHandler.GetById)
 	protectedRoutes.Get("/showtimes", showtimeHandler.GetAll)
+
+	protectedRoutes.Get("/reservations", reservationHandler.GetAll)
 
 	adminRoutes := protectedRoutes.Group("/", middleware.AdminMiddleware)
 
